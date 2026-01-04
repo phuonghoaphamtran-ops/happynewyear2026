@@ -188,29 +188,6 @@
             font-size: 1.6rem;
             filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
         }
-
-        .floating-wish {
-            position: fixed;
-            pointer-events: none;
-            z-index: 15;
-            font-size: 2.5rem;
-            animation: floatAndFade 4s ease-out forwards;
-        }
-        
-        @keyframes floatAndFade {
-            0% { 
-                transform: translateY(0) scale(0.5);
-                opacity: 0;
-            }
-            20% {
-                opacity: 1;
-                transform: translateY(-30px) scale(1);
-            }
-            100% { 
-                transform: translateY(-200px) scale(1.2);
-                opacity: 0;
-            }
-        }
     </style>
 </head>
 <body>
@@ -249,14 +226,12 @@
         const musicIcon = document.getElementById('music-icon');
 
         let width, height;
-        let rockets = [], particles = [], floatingEmojis = [];
+        let rockets = [], particles = [];
         let handX = 0, handY = 0;
         let isPinching = false, wasPinching = false;
         let chargeLevel = 0.0;
         let audioCtx = null;
         let musicPlaying = true; // Mặc định hiển thị là đang phát
-
-        const wishEmojis = ["🤩", "🤯", "🎆", "✨", "💥", "🌟"];
 
         function resize() { 
             width = window.innerWidth; 
@@ -269,7 +244,6 @@
 
         // --- HỆ THỐNG ÂM THANH (AUTOPLAY HACK) ---
         
-        // 1. Thử phát nhạc ngay khi tải trang
         function tryPlayMusic() {
             if (!audioCtx) { 
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
@@ -282,18 +256,15 @@
 
             if (playPromise !== undefined) {
                 playPromise.then(() => {
-                    // Thành công
                     musicPlaying = true;
                     musicIcon.textContent = '🔊';
                 }).catch(error => {
-                    // Bị chặn -> Chờ tương tác
                     musicPlaying = false; 
                     musicIcon.textContent = '🔇'; 
                 });
             }
         }
 
-        // 2. Mở khóa âm thanh khi người dùng chạm vào màn hình lần đầu
         function unlockAudio() {
             if (!musicPlaying) {
                 tryPlayMusic();
@@ -306,7 +277,6 @@
         document.body.addEventListener('click', unlockAudio);
         document.body.addEventListener('touchstart', unlockAudio);
 
-        // 3. Nút bật tắt thủ công
         musicToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             if (musicPlaying) {
@@ -352,16 +322,6 @@
             gain.connect(audioCtx.destination); 
             noise.start();
             if (navigator.vibrate) navigator.vibrate(Math.min(80 + (power * 150), 300));
-        }
-
-        function createFloatingEmoji(x, y) {
-            const emoji = document.createElement('div');
-            emoji.className = 'floating-wish';
-            emoji.textContent = wishEmojis[Math.floor(Math.random() * wishEmojis.length)];
-            emoji.style.left = x + 'px';
-            emoji.style.top = y + 'px';
-            document.body.appendChild(emoji);
-            setTimeout(() => emoji.remove(), 4000);
         }
 
         class Rocket {
@@ -451,10 +411,6 @@
             
             for(let i=0; i<count; i++) particles.push(new Particle(x, y, power));
             playExplosionSound(power);
-            
-            if (Math.random() > 0.4) {
-                createFloatingEmoji(x, y);
-            }
         }
 
         function drawChargeIndicator(ctx, x, y, charge) {
@@ -508,7 +464,6 @@
                 const dist = Math.hypot(handX - thumbX, handY - thumbY); 
                 isPinching = dist < 55;
                 
-                // Kích hoạt âm thanh khi kẹp tay (dự phòng)
                 if (isPinching) unlockAudio();
 
                 if (isPinching) { 
